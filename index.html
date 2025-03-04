@@ -14,14 +14,17 @@
     <form method="post">
       <input type="hidden" name="tmx_session_id" value="{TM_SESSION_ID}" />
 
-
       <label for="card_holder_name">Name</label>
       <input type="text" name="card_holder_name" value="Sherlock Holmes" />
-      <br>
+      <br />
 
       <label for="card_holder_email">Email</label>
-      <input type="email" name="card_holder_email" value="sherlok.holmes@test.com" />
-      <br>
+      <input
+        type="email"
+        name="card_holder_email"
+        value="sherlok.holmes@test.com"
+      />
+      <br />
 
       <label for="card_number">Card Number</label>
       <input
@@ -49,5 +52,64 @@
 
       <button type="submit">Pay</button>
     </form>
+
+    <div id="test-values"></div>
+    <script>
+      const testValues = document.getElementById("test-values");
+      [
+        ["low risk", "fs-lowRisk"],
+        ["high risk", "fs-highRisk"],
+        ["review", "fs-review"],
+      ].forEach(([label, value]) => {
+        const button = document.createElement("button");
+        button.textContent = label;
+        button.onclick = () => {
+          document.querySelector("[name=card_holder_name]").value = value;
+        };
+        testValues.appendChild(button);
+      });
+
+      testValues.appendChild(document.createElement("br"));
+
+      [
+        ["success frictionless visa", "4000000000001000"],
+        ["success frictionless mastercard", "5200000000001005"],
+        ["failed frictionless visa", "4000000000001018"],
+        ["failed frictionless mastercard", "5200000000001013"],
+        ["attempt stand-in frictionless visa", "4000000000001026"],
+        ["attempt stand-in frictionless mastercard", "5200000000001021"],
+        ["unavailable-issuer visa", "4000000000001034"],
+        ["unavailable-issuer mastercard", "5200000000001039"],
+        ["rejected visa", "4000000000001042"],
+        ["rejected mastercard", "5200000000001047"],
+        ["unavailable-sys.error visa", "4000000000001059"],
+        ["unavailable-sys.error mastercard", "5200000000001054"],
+        ["auth.error visa", "4000000000001067"],
+        ["auth.error mastercard", "5200000000001062"],
+        ["auth.timeout visa", "4000000000001075"],
+        ["auth.timeout mastercard", "5200000000001070"],
+        ["challenge visa", "4000000000001091"],
+        ["challenge mastercard", "5200000000001096"],
+        ["failed.challenge visa", "4000000000001109"],
+        ["failed.challenge mastercard", "5200000000001104"],
+        ["verification.unavailable visa", "4000000000001117"],
+        ["verification.unavailable mastercard", "5200000000001112"],
+        ["verification.error visa", "4000000000001125"],
+        ["verification.error mastercard", "5200000000001120"],
+        ["bypass visa", "4000000000001083"],
+        ["bypass mastercard", "5200000000001088"],
+      ].forEach(([label, value], index) => {
+        const button = document.createElement("button");
+        button.textContent = label;
+        button.onclick = () => {
+          document.querySelector("[name=card_number]").value = value;
+        };
+        testValues.appendChild(button);
+
+        if (index % 2 === 1) {
+          testValues.appendChild(document.createElement("br"));
+        }
+      });
+    </script>
   </body>
 </html>

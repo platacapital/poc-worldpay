@@ -1,23 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import open from "open";
-import {
-  customerInitiatedTransaction,
-  CardData,
-  DeviceDataCollection,
-  OwnDeviceDataCollection,
-  Payment,
-  threeDsAuthentication,
-  threeDsDeviceDataInit,
-  threeDsVerification,
-  ThreeDsAuthResultWithoutChallenge,
-  createToken,
-  TM_ORGANISATION_ID,
-  TM_PROFILING_DOMAIN,
-  fraudsightAssessment,
-  FraudsightRiskResult,
-  deleteToken,
-} from "./worldpay";
+import * as wp from "./worldpay";
 import { readFile } from "node:fs/promises";
 
 const PORT = 3000;
@@ -25,11 +9,11 @@ const PORT = 3000;
 const transfers = new Map<
   string,
   {
-    payment: Payment;
-    ddc: DeviceDataCollection;
-    auth?: ThreeDsAuthResultWithoutChallenge;
+    payment: wp.Payment;
+    ddc: wp.DeviceDataCollection;
+    auth?: wp.ThreeDsAuthResultWithoutChallenge;
     threatMetrixSessionId: string;
-    risk: FraudsightRiskResult;
+    risk: wp.FraudsightRiskResult;
   }
 >();
 
@@ -42,8 +26,8 @@ app.get("/", async (_req, res) => {
   );
 
   const html = index
-    .replaceAll("{TM_PROFILING_DOMAIN}", TM_PROFILING_DOMAIN)
-    .replaceAll("{TM_ORGANISATION_ID}", TM_ORGANISATION_ID)
+    .replaceAll("{TM_PROFILING_DOMAIN}", wp.TM_PROFILING_DOMAIN)
+    .replaceAll("{TM_ORGANISATION_ID}", wp.TM_ORGANISATION_ID)
     .replaceAll("{TM_SESSION_ID}", create_uuid());
 
   res.contentType("html").send(html);
@@ -60,7 +44,7 @@ app.post("/", async (req, res) => {
   const [month, year] = req.body.card_expiry.split("/");
   const cvc = req.body.card_cvc;
 
-  const card: CardData = {
+  const card: wp.CardData = {
     cardHolder: {
       name: req.body.card_holder_name,
       email: req.body.card_holder_email,
@@ -80,9 +64,9 @@ app.post("/", async (req, res) => {
     },
   };
 
-  const token = await createToken(card);
+  const token = await wp.createToken(card);
 
-  const payment: Payment = {
+  const payment: wp.Payment = {
     amount: 100,
     currency: "GBP",
     reference,
@@ -90,13 +74,13 @@ app.post("/", async (req, res) => {
     cardCvc: cvc,
   };
   const [risk, ddc] = await Promise.all([
-    fraudsightAssessment({
+    wp.fraudsightAssessment({
       payment,
       tmSessionId,
       browserIp: req.ip!,
       cardHolderEmail: card.cardHolder.email,
     }),
-    threeDsDeviceDataInit(payment),
+    wp.threeDsDeviceDataInit(payment),
   ]);
 
   console.log("DDC", ddc);
@@ -152,7 +136,7 @@ app.post("/auth", async (req, res) => {
 
   const sessionId = req.body.sessionId;
 
-  const browserData: OwnDeviceDataCollection = {
+  const browserData: wp.OwnDeviceDataCollection = {
     acceptHeader: req.headers["accept"] as string,
     userAgentHeader: req.headers["user-agent"] as string,
     browserLanguage: req.body.browserLanguage,
@@ -165,7 +149,7 @@ app.post("/auth", async (req, res) => {
     ipAddress: req.ip,
   };
 
-  const result = await threeDsAuthentication({
+  const result = await wp.threeDsAuthentication({
     challengeReturnUrl: "http://localhost:3000/auth-callback",
     payment: transfer.payment,
     collectionReference: sessionId,
@@ -221,7 +205,7 @@ app.get("/auth-complete", async (req, res) => {
       transfer.auth.outcome === "authenticated" ||
       transfer.auth.outcome === "bypassed"
     ) {
-      const paymentResult = await customerInitiatedTransaction({
+      const paymentResult = await wp.customerInitiatedTransaction({
         payment: transfer.payment,
         threeDsAuthentication: transfer.auth.authentication,
         riskProfileHref: transfer.risk.riskProfile.href,
@@ -251,7 +235,7 @@ app.get("/auth-complete", async (req, res) => {
     );
   } finally {
     // for testing purposes, delete the token. Otherwise we can't reuse the same card number with different names
-    await deleteToken(transfer.payment.token.href);
+    await wp.deleteToken(transfer.payment.token.href);
   }
 });
 
@@ -270,7 +254,7 @@ app.post("/auth-callback", async (req, res) => {
     return;
   }
 
-  const result = await threeDsVerification({
+  const result = await wp.threeDsVerification({
     transactionReference: reference,
     challengeReference: transactionId,
   });
