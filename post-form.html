@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head> </head>
+  <body>
+    <form method="POST"></form>
+
+    <script>
+      window.onload = function () {
+        const qs = new URLSearchParams(window.location.search);
+        const params = qs.get("p");
+        const form = document.querySelector("form");
+        form.action = qs.get("url");
+        try {
+          const allParams = JSON.parse(params);
+          for (const [key, value] of Object.entries(allParams)) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        form.submit();
+      };
+    </script>
+  </body>
+</html>

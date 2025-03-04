@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head> </head>
+  <body>
+    <h1>Wait, DEVICE DATA COLLECTION</h1>
+    <iframe height="1" width="1" style="display: none" src="{URL}"></iframe>
+    <form action="/auth" method="POST">
+      <input type="hidden" name="reference" value="{REFERENCE}" />
+      <input type="hidden" name="sessionId" />
+      <input type="hidden" name="browserColorDepth" />
+      <input type="hidden" name="browserLanguage" />
+      <input type="hidden" name="browserScreenHeight" />
+      <input type="hidden" name="browserScreenWidth" />
+      <input type="hidden" name="browserTZ" />
+      <input type="hidden" name="browserJavaEnabled" />
+      <input type="hidden" name="browserJavascriptEnabled" />
+    </form>
+    <script>
+      document.querySelector("input[name=browserColorDepth]").value =
+        screen.colorDepth;
+      document.querySelector("input[name=browserLanguage]").value =
+        navigator.language;
+      document.querySelector("input[name=browserScreenHeight]").value =
+        screen.height;
+      document.querySelector("input[name=browserScreenWidth]").value =
+        screen.width;
+      document.querySelector("input[name=browserTZ]").value =
+        new Date().getTimezoneOffset();
+      document.querySelector("input[name=browserJavaEnabled]").value =
+        navigator.javaEnabled();
+      document.querySelector(
+        "input[name=browserJavascriptEnabled]"
+      ).value = true;
+
+      window.addEventListener("message", (ev) => {
+        // configurable per env:
+        const ACCEPTED_ORIGINS = [
+          "https://centinelapistag.cardinalcommerce.com", // staging
+          "https://centinelapi.cardinalcommerce.com", // production
+        ];
+        try {
+          if (!ACCEPTED_ORIGINS.includes(ev.origin)) {
+            return;
+          }
+
+          const data = JSON.parse(ev.data);
+          if (data.MessageType !== "profile.completed") {
+            // profile.completed is the only documented message type
+            return;
+          }
+
+          if (data.Status) {
+            document.querySelector("input[name=sessionId]").value =
+              data.SessionId;
+          } else {
+            //TODO: SessionId is empty. Documentation suggests to either retry DDC or 
+            // send the authentication request without the deviceData.collectionReference.
+          }
+
+          document.querySelector("form").submit();
+
+          console.log(data);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      // TODO: handle timeouts when no message received or when message is received with Status `False`
+    </script>
+  </body>
+</html>

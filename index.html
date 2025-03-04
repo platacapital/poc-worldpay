@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <script type="text/javascript" src="./threatmetrix.js"></script>
+    <script>
+      const result = threatmetrix.profile(
+        "{TM_PROFILING_DOMAIN}",
+        "{TM_ORGANISATION_ID}",
+        "{TM_SESSION_ID}"
+      );
+    </script>
+  </head>
+  <body>
+    <h1>Worldpay</h1>
+    <form method="post">
+      <input type="hidden" name="tmx_session_id" value="{TM_SESSION_ID}" />
+
+
+      <label for="card_holder_name">Name</label>
+      <input type="text" name="card_holder_name" value="Sherlock Holmes" />
+      <br>
+
+      <label for="card_holder_email">Email</label>
+      <input type="email" name="card_holder_email" value="sherlok.holmes@test.com" />
+      <br>
+
+      <label for="card_number">Card Number</label>
+      <input
+        id="card_number"
+        type="text"
+        name="card_number"
+        required
+        value="4000 0000 0000 1091"
+      />
+      <br />
+
+      <label for="card_expiry">Card Expiry</label>
+      <input
+        id="card_expiry"
+        type="text"
+        name="card_expiry"
+        required
+        value="05/35"
+      />
+      <br />
+
+      <label for="card_cvc">Card CVC</label>
+      <input id="card_cvc" type="text" name="card_cvc" required value="123" />
+      <br />
+
+      <button type="submit">Pay</button>
+    </form>
+  </body>
+</html>

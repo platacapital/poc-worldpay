@@ -1,0 +1,15 @@
+{
+  "configurations": [
+    {
+      "name": "demo",
+      "type": "node",
+      "request": "launch",
+
+      "program": "${workspaceFolder}/index.ts",
+      "runtimeExecutable": "tsx",
+
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}
